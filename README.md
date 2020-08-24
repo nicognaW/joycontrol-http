@@ -3,7 +3,7 @@ Emulate Nintendo Switch Controllers over Bluetooth.
 
 Tested on Ubuntu 19.10, and with Raspberry Pi 3B+ and 4B Raspbian GNU/Linux 10 (buster)
 
-**This document is from the original joycontrol repo, if you are looking for README of joycontrol-http, please click here.**
+**This document is from the original joycontrol repo, if you are looking for README of joycontrol-http, please click [here](https://github.com/nicognaW/joycontrol-http/tree/master/http).**
 
 ## Features
 Emulation of JOYCON_R, JOYCON_L and PRO_CONTROLLER. Able to send:
