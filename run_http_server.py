@@ -8,7 +8,7 @@ from time import sleep
 import uvicorn
 from uvicorn import Config
 
-import http
+import joycontrol_http
 from joycontrol import logging_default as log, utils
 from joycontrol.controller import Controller
 from joycontrol.memory import FlashMemory
@@ -79,7 +79,7 @@ def run_main_loop(q):
     sub_q = mp.Queue()
     logger.name = "主循环进程"
     cli_p = mp.Process(args=(sub_q,), target=run_cli, name="cli")
-    http.cli_p = cli_p
+    joycontrol_http.cli_p = cli_p
     cli_p.start()
     sub_q.put({"msg": "test"})
     while not shouldStop:
@@ -101,7 +101,7 @@ def run_main_loop(q):
                     logger.debug("删除cli进程...")
                     del cli_p
                     logger.debug("创建新的cli进程...")
-                    cli_p = mp.Process(args=(http.q,), target=run_cli, name="cli")
+                    cli_p = mp.Process(args=(joycontrol_http.q,), target=run_cli, name="cli")
                     if not cli_p.is_alive():
                         logger.debug("开启新的cli进程...")
                         cli_p.start()
@@ -114,13 +114,13 @@ if __name__ == '__main__':
     if not os.geteuid() == 0:
         raise PermissionError('Script must be run as root!')
 
-    server = uvicorn.Server(Config("http:app", host="0.0.0.0", port=80, reload=True))
+    server = uvicorn.Server(Config("joycontrol_http:app", host="0.0.0.0", port=80, reload=True))
 
-    http.q = mp.Queue()
-    http.isServerRunning = True
+    joycontrol_http.q = mp.Queue()
+    joycontrol_http.isServerRunning = True
 
-    main_loop_p = mp.Process(args=(http.q,), target=run_main_loop, name="loop")
+    main_loop_p = mp.Process(args=(joycontrol_http.q,), target=run_main_loop, name="loop")
 
     main_loop_p.start()
 
-    run_server(http.q)
+    run_server(joycontrol_http.q)

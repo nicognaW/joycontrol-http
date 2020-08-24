@@ -19,6 +19,6 @@ app.add_middleware(
 
 @app.get("/api/restart")
 async def restart():
-    from http import q, isServerRunning
+    from joycontrol_http import q, isServerRunning
     q.put({"msg": "restart"})
     return {"q": q.qsize(), "isServerRunning": isServerRunning}

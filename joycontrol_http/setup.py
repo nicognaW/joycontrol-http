@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='joycontrol-http',
+setup(name='joycontrol-joycontrol_http',
       version='0.14',
       author='Nico Gnaw',
       author_email='nicognaw@outlook.com',
