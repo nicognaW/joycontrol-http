@@ -14,6 +14,7 @@ from joycontrol.controller import Controller
 from joycontrol.memory import FlashMemory
 from joycontrol.protocol import controller_protocol_factory
 from joycontrol.server import create_hid_server
+from joycontrol_http import Command
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +44,20 @@ async def main(args, q):
                                                       device_id=args.device_id)
 
         controller_state = protocol.get_controller_state()
-
+        joycontrol_http.controller_state = controller_state
+        method = controller_state.button_state.set_button
+        q.put(method)
         logger.debug("controller开始监听")
         while True:
             await asyncio.sleep(0.1)
             if q.empty():
                 continue
             msg = q.get()
-            print(str(msg))
+            if isinstance(msg, Command):
+                if msg.target == "controller":
+                    if msg.cmd == "btn_push":
+                        from joycontrol.controller_state import button_push
+                        await button_push(controller_state, msg.obj)
 
 
 def run_cli(q):
@@ -77,34 +84,49 @@ shouldStop = False
 
 def run_main_loop(q):
     sub_q = mp.Queue()
-    logger.name = "主循环进程"
     cli_p = mp.Process(args=(sub_q,), target=run_cli, name="cli")
-    joycontrol_http.cli_p = cli_p
-    cli_p.start()
-    sub_q.put({"msg": "test"})
+    logger.name = "主循环进程"
+    # cli_p.start()
+    # sub_q_msg = sub_q.get(False)
+    # controller_state = None
+    # if sub_q_msg["msg"] == "state":
+    #     controller_state = sub_q_msg["obj"]
+    # joycontrol_http.controller_state = controller_state
+
     while not shouldStop:
         try:
-            empty = q.empty()
             sleep(0.1)
-            # if not cli_p.is_alive():
-            #     cli_p.start()
-            if not empty:
+            m_empty = q.empty()
+            s_empty = sub_q.empty()
+            if not s_empty:
+                print(1)
+            if m_empty and s_empty:
+                continue
+            if not m_empty:
                 msg = q.get_nowait()
-                print(f"收到消息：{msg['msg']}")
-                if msg['msg'] == "restart":
-                    logger.debug("重启cli进程...")
-                    logger.debug("终止cli进程...")
-                    cli_p.terminate()
-                    cli_p.join()
-                    logger.debug("关闭cli进程...")
-                    cli_p.close()
-                    logger.debug("删除cli进程...")
-                    del cli_p
-                    logger.debug("创建新的cli进程...")
-                    cli_p = mp.Process(args=(joycontrol_http.q,), target=run_cli, name="cli")
-                    if not cli_p.is_alive():
-                        logger.debug("开启新的cli进程...")
-                        cli_p.start()
+                if msg.target == "main":
+                    print(f"收到消息：{msg.cmd}")
+                    if msg.cmd == "restart":
+                        if not cli_p.is_alive():
+                            logger.debug("开启新的cli进程...")
+                            cli_p.start()
+                        else:
+                            logger.debug("重启cli进程...")
+                            logger.debug("终止cli进程...")
+                            cli_p.terminate()
+                            cli_p.join()
+                            logger.debug("关闭cli进程...")
+                            cli_p.close()
+                            logger.debug("删除cli进程...")
+                            del cli_p
+                            cli_p = mp.Process(args=(sub_q,), target=run_cli, name="cli")
+                            logger.debug("创建新的cli进程...")
+                            if not cli_p.is_alive():
+                                logger.debug("开启新的cli进程...")
+                                cli_p.start()
+            if not s_empty:
+                msg = sub_q.get_nowait()
+                print(msg)
         except Exception as e:
             print(e.__str__())
 
