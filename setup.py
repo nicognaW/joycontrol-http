@@ -1,16 +1,12 @@
-
 from setuptools import setup, find_packages
 
-setup(name='joycontrol',
+setup(name='joycontrol-joycontrol_http',
       version='0.14',
-      author='Robert Martin',
-      author_email='martinro@informatik.hu-berlin.de',
-      description='Emulate Nintendo Switch Controllers over Bluetooth',
+      author='Nico Gnaw',
+      author_email='nicognaw@outlook.com',
+      description='Build HTTP api for joycontrol.',
       packages=find_packages(),
-      package_data={'joycontrol': ['profile/sdp_record_hid.xml']},
       zip_safe=False,
       install_requires=[
-          'hid', 'aioconsole', 'dbus-python', 'crc8'
-      ]
-      )
-
+          'hid', 'aioconsole', 'dbus-python', 'crc8', 'fastapi', 'uvicorn'
+      ])
