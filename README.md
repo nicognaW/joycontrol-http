@@ -1,0 +1,1 @@
+I knew my codes are not good enough, I was really not good at python and multiprocessing when I wrote, and I have no intent to remake it, you may consult other better repos if you want, like [choss/joycontrol-web-interface](https://github.com/choss/joycontrol-web-interface), choss made really great progress of it.
